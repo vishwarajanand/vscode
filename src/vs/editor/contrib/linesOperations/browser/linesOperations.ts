@@ -1162,6 +1162,38 @@ export class SnakeCaseAction extends AbstractCaseAction {
 	}
 }
 
+export class CamelCaseAction extends AbstractCaseAction {
+
+	public static caseBoundary = new BackwardsCompatibleRegExp('(\\p{Ll})(\\p{Lu})', 'gmu');
+	public static singleLetters = new BackwardsCompatibleRegExp('(\\p{Lu}|\\p{N})(\\p{Lu})(\\p{Ll})', 'gmu');
+
+	constructor() {
+		super({
+			id: 'editor.action.transformToCamelcase',
+			label: nls.localize('editor.transformToCamelcase', "Transform to Camel Case"),
+			alias: 'Transform to Camel Case',
+			precondition: EditorContextKeys.writable
+		});
+	}
+
+	protected _modifyText(text: string, wordSeparators: string): string {
+		const caseBoundary = CamelCaseAction.caseBoundary.get();
+		const singleLetters = CamelCaseAction.singleLetters.get();
+		if (!caseBoundary || !singleLetters) {
+			// cannot support this
+			return text;
+		}
+		return (text
+			.replace(caseBoundary, function(a) {
+		  		return a.toUpperCase();
+			})
+			.replace(singleLetters, function(b) {
+				return b.toLowerCase();
+			})
+		);
+	}
+}
+
 registerEditorAction(CopyLinesUpAction);
 registerEditorAction(CopyLinesDownAction);
 registerEditorAction(DuplicateSelectionAction);
@@ -1185,6 +1217,9 @@ registerEditorAction(LowerCaseAction);
 
 if (SnakeCaseAction.caseBoundary.isSupported() && SnakeCaseAction.singleLetters.isSupported()) {
 	registerEditorAction(SnakeCaseAction);
+}
+if (CamelCaseAction.caseBoundary.isSupported() && CamelCaseAction.singleLetters.isSupported()) {
+	registerEditorAction(CamelCaseAction);
 }
 if (TitleCaseAction.titleBoundary.isSupported()) {
 	registerEditorAction(TitleCaseAction);
